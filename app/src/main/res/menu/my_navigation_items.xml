@@ -8,5 +8,18 @@
 
         />
 
+    <item android:id="@+id/ip_configuration"
+        android:icon="@drawable/ic_ip_configuration"
+        android:title="Поменять ip"
+        android:visible="true"
+
+        />
+    <item android:id="@+id/new_crime"
+    android:icon="@drawable/ic_cam"
+    android:title="Новый объект"
+        android:visible="true"
+
+    />
+
 
 </menu>

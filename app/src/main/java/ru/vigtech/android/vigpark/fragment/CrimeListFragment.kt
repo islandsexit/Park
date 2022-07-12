@@ -283,7 +283,42 @@ class CrimeListFragment : Fragment(),
 
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
+                R.id.ip_configuration -> {
+                    val alert = AlertDialog.Builder(requireContext())
+                    val edittext = EditText(requireContext())
+                    edittext.text = SpannableStringBuilder(getIpFromShared());
+                    alert.setMessage(R.string.ip_сщташпгкфешщт)
+                    alert.setTitle("Сервер")
 
+                    alert.setView(edittext)
+
+                    alert.setPositiveButton(
+                        "Готово"
+                    ) { dialog, whichButton -> //What ever you want to do with the value
+                        val ip = edittext.text.toString()
+                        val preferences: SharedPreferences =
+                            PreferenceManager.getDefaultSharedPreferences(requireContext())
+                        val editor = preferences.edit()
+                        editor.putString("ip", ip)
+                        editor.apply()
+                        ApiClient.reBuildRetrofit(ip)
+                    }
+
+                    alert.setNegativeButton(
+                        "Отмена"
+                    ) { dialog, whichButton ->
+                    }
+
+                    alert.show()
+
+
+                    true
+                }
+
+                R.id.new_crime -> {
+                    pickPhoto()
+                    true
+                }
 
 
 
@@ -565,7 +600,7 @@ class CrimeListFragment : Fragment(),
                         context?.getContentResolver()?.openInputStream(uri)
                     val bOut2 = ByteArrayOutputStream()
                     var bm = BitmapFactory.decodeStream(inputStream)
-                    bm = PicturesUtils.getResizedBitmap(bm, 720, 480)
+                    bm = PicturesUtils.getResizedBitmap(bm, 1024, 768)
                     bm.compress(Bitmap.CompressFormat.JPEG, 50, bOut2)
                     val mFile3 = File(
                         path_to_image,
