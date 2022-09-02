@@ -393,7 +393,11 @@ object ApiClient {
                             "onResponse| response: Result: $RESULT, info: $info "
                         )
                         if (RESULT == "SUCCESS") {
-                            authModel.savePreferences(info.split(";").toSet())
+                            val new_zones = info.split(";").toSet()
+                            if(new_zones != authModel.listOfAlias.value){
+
+                                authModel.savePreferences(new_zones)
+                            }
                         } else if (RESULT == "INVALID") {
                            authModel.onCheckLicence(false)
 

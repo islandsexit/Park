@@ -135,11 +135,11 @@ class CrimeFragment : Fragment(){
 
         resend_fragment_activity = view.findViewById(R.id.resend_fragment_activity) as Button
 
-        photoView.setOnTouchListener { v, event ->
-            v.bringToFront()
-            viewTransformation(v, event)
-            true
-        }
+//        photoView.setOnTouchListener { v, event ->
+//            v.bringToFront()
+//            viewTransformation(v, event)
+//            true
+//        }
 
         return view
     }
@@ -263,17 +263,22 @@ class CrimeFragment : Fragment(){
         titleField.setText(crime.title)
         if(File(crime.img_path).exists() && crime.img_path != ""){
            var mybitmap = BitmapFactory.decodeFile(crime.img_path)
-            if(!crime.Rect.isNullOrEmpty()) {
-                val myBitmapSmall =
-                    Bitmap.createBitmap(
-                        mybitmap, crime.Rect?.get(0)?.toInt()!!,
-                        crime.Rect?.get(1)?.toInt()!!,
-                        crime.Rect?.get(2)?.toInt()!!, crime.Rect?.get(3)?.toInt()!!
-                    )
-                photoViewSmall.setImageBitmap(Bitmap.createScaledBitmap(myBitmapSmall, (myBitmapSmall.width*2.5).toInt(), (myBitmapSmall.height*2.5).toInt(), false))
-                photoViewSmall.visibility = View.VISIBLE
+            try{
+                if(!crime.Rect.isNullOrEmpty()) {
+                    val myBitmapSmall =
+                        Bitmap.createBitmap(
+                            mybitmap, crime.Rect?.get(0)?.toInt()!!,
+                            crime.Rect?.get(1)?.toInt()!!,
+                            crime.Rect?.get(2)?.toInt()!!, crime.Rect?.get(3)?.toInt()!!
+                        )
+                    photoViewSmall.setImageBitmap(Bitmap.createScaledBitmap(myBitmapSmall, (myBitmapSmall.width*2.5).toInt(), (myBitmapSmall.height*2.5).toInt(), false))
+                    photoViewSmall.visibility = View.VISIBLE
 
-            }else{
+                }else{
+                    photoViewSmall.visibility = View.INVISIBLE
+                }
+            }
+            catch (e:Exception){
                 photoViewSmall.visibility = View.INVISIBLE
             }
 

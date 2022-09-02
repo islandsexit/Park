@@ -518,7 +518,7 @@ class CrimeListFragment : Fragment(),
 
         subZoneMenu.setGroupCheckable(2, true, true)
         try {
-            selectMenu(zone-1, menu)
+            selectMenu(zone, menu)
         }catch (e:Exception){
 
         }
@@ -528,7 +528,7 @@ class CrimeListFragment : Fragment(),
         }
         viewModel.listOfAlias.observe(viewLifecycleOwner, zoneObserver)
         try {
-            selectMenu(zone-1, menu)
+            selectMenu(zone, menu)
         }catch (e:Exception){
 
         }
@@ -549,13 +549,13 @@ class CrimeListFragment : Fragment(),
             }
         }
         try {
-            subZoneMenu.getItem(getZoneFromShared()-1).isChecked = true
+            subZoneMenu.getItem(getZoneFromShared()).isChecked = true
         }catch(e:Exception){
 
         }
 
         subZoneMenu.setGroupCheckable(2, true, true)
-        adapter?.notifyDataSetChanged()
+
     }
 
 
@@ -653,7 +653,6 @@ class CrimeListFragment : Fragment(),
         private val sendIcon: ImageView = itemView.findViewById(R.id.connection)
         private val foundIcon: ImageView = itemView.findViewById(R.id.not_found)
         private val infoDot: ImageView = itemView.findViewById(R.id.crime_info_dot)
-        private val workerIcon: ImageView = itemView.findViewById(R.id.worker_info_ic)
         private val zone: TextView = itemView.findViewById(R.id.crime_zone)
 
 
@@ -666,7 +665,6 @@ class CrimeListFragment : Fragment(),
         @SuppressLint("SimpleDateFormat")
         fun bind(crime: Crime) {
             this.crime = crime
-            workerIcon.visibility = View.GONE
             titleTextView.text = this.crime.title
             try {
                 zone.text = viewModel.listOfAlias.value!!.elementAt(crime.Zone-1)

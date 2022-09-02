@@ -39,22 +39,12 @@
         android:layout_marginStart="16dp"
         android:src="@drawable/ic_worker"
         android:layout_marginTop="16dp"
-        app:layout_constraintStart_toEndOf="@id/worker_info_ic"
+        app:layout_constraintStart_toEndOf="@id/crime_title"
         app:layout_constraintTop_toTopOf="parent"
         android:visibility="gone"
         tools:visibility="visible"/>
 
-    <ImageView
-        android:id="@+id/worker_info_ic"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
-        android:src="@drawable/ic_worker"
-        android:visibility="gone"
-        app:layout_constraintStart_toEndOf="@+id/crime_title"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" />
+
 
     <ImageView
         android:id="@+id/connection"
