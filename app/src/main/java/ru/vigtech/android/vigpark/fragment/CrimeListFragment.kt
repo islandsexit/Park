@@ -80,8 +80,8 @@ class CrimeListFragment : Fragment(),
     private lateinit var header_Arrow_Image: ImageView
     private var mLocationRequest: LocationRequest? = null
     private val listener: com.google.android.gms.location.LocationListener? = null
-    private val UPDATE_INTERVAL = (2 * 1000).toLong()  /* 10 secs */
-    private val FASTEST_INTERVAL: Long = 2000 /* 2 sec */
+    private val UPDATE_INTERVAL = (1000).toLong()  /* 10 secs */
+    private val FASTEST_INTERVAL: Long = 1000 /* 2 sec */
 
     private val group1Id = 1
 
@@ -104,6 +104,7 @@ class CrimeListFragment : Fragment(),
     private val isLocationEnabled: Boolean
         get() {
             locationManager = context?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
             return locationManager!!.isProviderEnabled(LocationManager.GPS_PROVIDER) || locationManager!!.isProviderEnabled(
                 LocationManager.NETWORK_PROVIDER
             )
@@ -683,13 +684,16 @@ class CrimeListFragment : Fragment(),
             if (!crime.send) {
                 sendIcon.visibility = View.VISIBLE
                 foundIcon.visibility = View.GONE
+                infoDot.visibility = View.GONE
 
             } else {
                 sendIcon.visibility = View.GONE
                 if (!crime.found) {
+                    infoDot.visibility = View.GONE
                     foundIcon.visibility = View.VISIBLE
                 } else {
                     foundIcon.visibility = View.GONE
+                    infoDot.visibility = View.GONE
                     if (crime.info.count() >= 2 && crime.info != "null") {
                         infoDot.visibility = View.VISIBLE
                     }
@@ -910,6 +914,7 @@ class CrimeListFragment : Fragment(),
             .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
             .setInterval(UPDATE_INTERVAL)
             .setFastestInterval(FASTEST_INTERVAL)
+
         // Request location updates
 
         if (androidx.core.app.ActivityCompat.checkSelfPermission(

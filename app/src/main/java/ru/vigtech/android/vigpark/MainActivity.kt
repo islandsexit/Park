@@ -106,7 +106,15 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        Log.i("App_tag", "$keyCode")
         when (keyCode) {
+            27 ->{
+                val fm = supportFragmentManager
+                val fragment: CrimeListFragment? =
+                    fm.findFragmentById(R.id.fragment_container) as CrimeListFragment?
+                fragment?.cameraxHelper?.takePicture()
+                return true
+            }
             KeyEvent.KEYCODE_MENU -> {
 
                 return true

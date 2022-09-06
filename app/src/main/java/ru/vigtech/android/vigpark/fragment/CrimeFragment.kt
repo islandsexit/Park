@@ -11,6 +11,7 @@ import android.opengl.Visibility
 import android.os.Bundle
 import android.provider.Settings
 import android.text.Editable
+import android.text.Html
 import android.text.TextWatcher
 import android.util.Log
 import android.view.*
@@ -55,7 +56,7 @@ class CrimeFragment : Fragment(){
     private lateinit var workIcon: ImageView
     private lateinit var workText: TextView
 
-//    private lateinit var longlat: TextView
+   private lateinit var longlat: Button
 
     private lateinit var resend_fragment_activity: Button
     private lateinit var photoView: ImageView
@@ -100,7 +101,7 @@ class CrimeFragment : Fragment(){
         workDetails = view.findViewById(R.id.crime_det)
 
 
-//        longlat = view.findViewById(R.id.longlat) as TextView
+        longlat = view.findViewById(R.id.longlat)
 
         photoView = view.findViewById(R.id.crime_photo) as ImageView
         photoViewSmall = view.findViewById(R.id.crime_photo_small) as ImageView
@@ -297,18 +298,18 @@ class CrimeFragment : Fragment(){
             textFound.visibility = View.VISIBLE
         }
 
-//        longlat.setOnClickListener {
-//            if (crime.lat == 0.0){
-//                Toast.makeText(requireContext(), "Нет геоданных", Toast.LENGTH_SHORT).show()
-//            }
-//            else {
-//                val intent = Intent(
-//                    Intent.ACTION_VIEW,
-//                    Uri.parse("geo:0,0?q=${crime.lat},${crime.lon}")
-//                )
-//                startActivity(intent)
-//            }
-//        }
+        longlat.setOnClickListener {
+            if (crime.lat == 0.0){
+                Toast.makeText(requireContext(), "Нет геоданных", Toast.LENGTH_SHORT).show()
+            }
+            else {
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("geo:0,0?q=${crime.lat},${crime.lon}")
+                )
+                startActivity(intent)
+            }
+        }
 
 //        val text = "Местоположение по <a href=\"https://yandex.ru/maps/?pt=${crime.lat},${crime.lon}&z=18&l=map\">ссылке</a>"
 //        longlat.text = Html.fromHtml(text);
