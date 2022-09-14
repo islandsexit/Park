@@ -3,15 +3,13 @@ package ru.vigtech.android.vigpark.fragment
 import android.Manifest
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.DialogInterface
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.location.LocationManager
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -30,9 +28,8 @@ import androidx.camera.core.TorchState
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.*
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -42,6 +39,7 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.vision.text.Text
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.navigation.NavigationView
@@ -88,9 +86,14 @@ class CrimeListFragment : Fragment(),
     var flashid = 111
     var zoneId = 112
 
+    var TYPE_WIFI = 1
+    var TYPE_MOBILE = 2
+    var TYPE_NOT_CONNECTED = 0
 
 
-    //TOAST
+    var lastFirstVisiblePosition = 0
+
+
     private lateinit var toastInflater: LayoutInflater
     private lateinit var toastLayout: View
     private lateinit var toastImage: ImageView
@@ -123,7 +126,7 @@ class CrimeListFragment : Fragment(),
     private lateinit var crimeRecyclerView: RecyclerView
     private lateinit var mybitmap: Bitmap
 
-    private lateinit var photoButton: ImageButton
+    lateinit var photoButton: ImageButton
 
     private lateinit var arrowImage: ImageView
     private lateinit var drawerLayout: DrawerLayout
@@ -169,8 +172,10 @@ class CrimeListFragment : Fragment(),
         savedInstanceState: Bundle?
     ): View? {
 
-
+        PicturesUtils.canCam = true
         val view = inflater.inflate(R.layout.fragment_crime_list, container, false)
+        val filter = IntentFilter("android.net.conn.CONNECTIVITY_CHANGE")
+        requireActivity().registerReceiver(myReceiver, filter)
         mSizeHelper = SizeHelper()
 
         //Toast start
@@ -238,6 +243,8 @@ class CrimeListFragment : Fragment(),
 
         photoButton.setOnClickListener {
             try {
+                crimeListViewModel.position = 0
+                crimeListViewModel.delete = mutableListOf(true, true)
                 cameraxHelper.takePicture()
             } catch (e: Exception) {
                 Log.e("PictureDemo", "Exception in take photo", e)
@@ -246,17 +253,20 @@ class CrimeListFragment : Fragment(),
         }
 
 
-        //todo camera size cameraBridgeViewBase.setMaxFrameSize(1280, 720)
+
 
 
         //todo свайп
         val swipeHandler = object : SwipeToDeleteCallback(this.context) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                crimeRecyclerView.adapter?.notifyItemRemoved(viewHolder.position)
+                lastFirstVisiblePosition = (crimeRecyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
+                val adapterPosition = viewHolder.adapterPosition
+                crimeRecyclerView.adapter?.notifyItemRemoved(adapterPosition)
+                crimeListViewModel.position = lastFirstVisiblePosition
                 CoroutineScope(Dispatchers.Default).launch {
-                    val crime = crimeListViewModel.getCrimeFromPosition(viewHolder.position)
-
+                    val crime = crimeListViewModel.getCrimeFromPosition(adapterPosition)
                     CrimeRepository.get().deleteCrime(crime)
+                    crimeListViewModel.delete = mutableListOf(false, false)
                     val file = File(crime.img_path)
                     if (file.exists()) {
                         file.delete()
@@ -272,8 +282,12 @@ class CrimeListFragment : Fragment(),
         val swipeHandlerResend = object : SwipeToResendCallback(this.context) {
             @SuppressLint("NotifyDataSetChanged")
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                lastFirstVisiblePosition = (crimeRecyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
+                val adapterPosition = viewHolder.adapterPosition
+                crimeListViewModel.position = lastFirstVisiblePosition
                 CoroutineScope(Dispatchers.Default).launch {
-                    val crime = crimeListViewModel.getCrimeFromPosition(viewHolder.adapterPosition)
+                    val crime = crimeListViewModel.getCrimeFromPosition(adapterPosition)
+                    crimeListViewModel.delete = mutableListOf(true, true)
                     ResendCrime(crime)
                     Log.i("Swipe Resend", "Resend ${crime.title}")
                 }
@@ -282,15 +296,34 @@ class CrimeListFragment : Fragment(),
         val itemTouchHelperResend = ItemTouchHelper(swipeHandlerResend)
         itemTouchHelperResend.attachToRecyclerView(crimeRecyclerView)
 
+
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.ip_configuration -> {
+                    var count = 0
                     val alert = AlertDialog.Builder(requireContext())
+                    val rg = RadioGroup(requireContext())
+
+                    val options = arrayOf("http://192.168.48.91:1234/","http://192.168.48.51:1234/", "http://95.182.74.37:1234/" )
+
+
+
+
                     val edittext = EditText(requireContext())
                     edittext.text = SpannableStringBuilder(getIpFromShared());
                     alert.setMessage(R.string.ip_сщташпгкфешщт)
                     alert.setTitle("Сервер")
-
+                    edittext.setOnLongClickListener(){
+                        when(count){
+                            0 ->{edittext.text = SpannableStringBuilder(options[0])
+                                count++}
+                            1 ->{edittext.text = SpannableStringBuilder(options[1])
+                                count++}
+                            2 ->{edittext.text = SpannableStringBuilder(options[2])
+                                count=0}
+                        }
+                        true
+                    }
                     alert.setView(edittext)
 
                     alert.setPositiveButton(
@@ -444,6 +477,13 @@ class CrimeListFragment : Fragment(),
         viewModel.initViewModel()
         val authObserver = Observer<Int>{
             alertKey(it, viewModel)
+
+        }
+        val aliveObserver = Observer<Boolean>{
+            if(it){
+                resendAllUnsendCrimes()
+
+            }
         }
 
 
@@ -451,15 +491,17 @@ class CrimeListFragment : Fragment(),
 
 
 //        viewModel.authSuccess.value?.let { alertKey(it, viewModel) }
-
+        viewModel.aliveSwitch.observe(viewLifecycleOwner, aliveObserver)
         viewModel.authSuccess.observe(viewLifecycleOwner, authObserver)
         ApiClient.authModel = viewModel
 //        if (!viewModel.authSuccess.value!!){
 //            alertKey(viewModel.authSuccess.value!!, viewModel)
 //        }
 
+        val textForNav = TextView(requireContext())
+        textForNav.setText(viewModel.secureKey)
 
-
+        navView.addView(textForNav)
 
 
 
@@ -468,7 +510,8 @@ class CrimeListFragment : Fragment(),
 
     private fun alertKey(isAuth: Int, AuthModel: Auth) {
         Log.i("AAAAAAAAAAAAAAAAAA", "$isAuth")
-        if (isAuth==1 || isAuth==2) {
+//        if (isAuth==1 || isAuth==2) {todo alert
+        if (false) {
             val alert = AlertDialog.Builder(requireContext())
             val edittext = EditText(requireContext())
             edittext.hint = SpannableStringBuilder("xxx-xxx-xxx-xxx");
@@ -523,13 +566,16 @@ class CrimeListFragment : Fragment(),
         }catch (e:Exception){
 
         }
-        ApiClient.checkZone()
+        if (viewModel.authSuccess.value == 3){
+            ApiClient.checkZone()
+        }
         val zoneObserver = Observer<Set<String>> {
             rebuildMenu(menu)
         }
         viewModel.listOfAlias.observe(viewLifecycleOwner, zoneObserver)
         try {
             selectMenu(zone, menu)
+
         }catch (e:Exception){
 
         }
@@ -635,12 +681,28 @@ class CrimeListFragment : Fragment(),
     }
 
     private fun updateUI(crimes: List<Crime>) {
+
+
         adapter?.let {
             it.crimes = crimes
         } ?: run {
             adapter = CrimeAdapter(crimes)
+            adapter!!.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+
         }
+
+
+
         crimeRecyclerView.adapter = adapter
+            try{
+                crimeRecyclerView.scrollToPosition(crimeListViewModel.position)
+            }catch(e:Exception){
+                crimeRecyclerView.scrollToPosition(0)
+            }
+
+        crimeListViewModel.position = 0
+
+
     }
 
     private inner class CrimeHolder(view: View) : RecyclerView.ViewHolder(view),
@@ -746,7 +808,9 @@ class CrimeListFragment : Fragment(),
 
         override fun onBindViewHolder(holder: CrimeHolder, position: Int) {
             val crime = crimes[position]
+
             holder.bind(crime)
+
         }
 
         fun removeAt(position: Int) {
@@ -766,6 +830,7 @@ class CrimeListFragment : Fragment(),
 
     override fun onDestroy() {
         super.onDestroy()
+        getActivity()?.getApplicationContext()?.unregisterReceiver(myReceiver);
 
     }
 
@@ -797,6 +862,9 @@ class CrimeListFragment : Fragment(),
                 }
             }
         )
+
+
+
     }
 
     override fun onDetach() {
@@ -812,7 +880,7 @@ class CrimeListFragment : Fragment(),
             val bm = BitmapFactory.decodeFile(crime.img_path)
             bm.compress(Bitmap.CompressFormat.JPEG, 100, bOut2)
             img64_full = Base64.encodeToString(bOut2.toByteArray(), Base64.DEFAULT)
-            crime.date = Calendar.getInstance().time
+//            crime.date = Calendar.getInstance().time
             ApiClient.POST_img64(img64_full.toString(), crime)
         } else {
             Log.e("RESEND CRIME", "not deleted")
@@ -821,11 +889,34 @@ class CrimeListFragment : Fragment(),
 
     }
 
+    fun <T> LiveData<T>.observeOnce(lifecycleOwner: LifecycleOwner, observer: Observer<T>) {
+        observe(lifecycleOwner, object : Observer<T> {
+            override fun onChanged(t: T?) {
+                observer.onChanged(t)
+                removeObserver(this)
+            }
+        })
+    }
+
+    fun resendAllUnsendCrimes(){
+        crimeListViewModel.crimeUnsendLiveData.observeOnce(viewLifecycleOwner, Observer {
+            crimes ->
+            CoroutineScope(Dispatchers.Default).launch {
+                    for(crime in crimes){
+                        ResendCrime(crime)
+
+                    }
+                }
+
+        })
+
+    }
+
 
     private fun getIpFromShared(): String? {
         val preferences: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val url = preferences.getString("ip", "")
+        val url = preferences.getString("ip", "http://95.182.74.37:1234/")
         if (!url.equals("", ignoreCase = true)) {
             return url
         } else {
@@ -953,6 +1044,48 @@ class CrimeListFragment : Fragment(),
             .setNegativeButton("Выйти") { paramDialogInterface, paramInt -> }
         dialog.show()
     }
+
+
+    private val myReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent?) {
+            try {
+                val status = getConnectivityStatusString(context)
+
+                if (status != "No"){
+                    ApiClient.checkZone()
+                }
+
+            }catch (e:Exception){
+
+            }
+
+        }
+    }
+
+    fun getConnectivityStatusString(context: Context): String? {
+        val conn = getConnectivityStatus(context)
+        var status: String? = null
+        if (conn == TYPE_WIFI) {
+            status = "Wifi" //"Wifi enabled";
+        } else if (conn == TYPE_MOBILE) {
+            status = "Mobile" //"Mobile data enabled";
+        } else if (conn == TYPE_NOT_CONNECTED) {
+            status = "No" //"Not connected to Internet";
+        }
+        return status
+    }
+
+    fun getConnectivityStatus(context: Context): Int {
+        val cm = context
+            .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = cm.activeNetworkInfo
+        if (null != activeNetwork) {
+            if (activeNetwork.type == TYPE_WIFI) return TYPE_WIFI
+            if (activeNetwork.type == ConnectivityManager.TYPE_MOBILE) return TYPE_MOBILE
+        }
+        return TYPE_NOT_CONNECTED
+    }
+
 
 }
 

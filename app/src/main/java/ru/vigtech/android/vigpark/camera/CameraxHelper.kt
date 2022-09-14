@@ -33,7 +33,9 @@ class CameraxHelper(
     var builderImageCapture: ImageCapture.Builder? = null,
     private val onError: ((Throwable) -> Unit)? = null,
     var zone: Int = 1,
-    var latLng: LatLng
+    var latLng: LatLng,
+
+
 
 
 

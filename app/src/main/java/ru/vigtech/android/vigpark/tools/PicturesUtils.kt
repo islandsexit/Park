@@ -12,7 +12,7 @@ import java.io.FileOutputStream
 
 object PicturesUtils {
 
-
+    var canCam = true
 
     fun getResizedBitmap(bm: Bitmap, newWidth: Int, newHeight: Int): Bitmap {
         val width = bm.width

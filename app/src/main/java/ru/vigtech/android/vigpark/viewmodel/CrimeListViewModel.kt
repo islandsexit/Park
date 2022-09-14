@@ -1,6 +1,6 @@
 package ru.vigtech.android.vigpark.viewmodel
 
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import ru.vigtech.android.vigpark.database.Crime
 import ru.vigtech.android.vigpark.database.CrimeRepository
 
@@ -9,6 +9,9 @@ class CrimeListViewModel : ViewModel() {
     private val crimeRepository = CrimeRepository.get()
     val crimeListLiveData = crimeRepository.getCrimes()
     val crimeUnsendLiveData = crimeRepository.getUnsendCrimes()
+
+    var position = 0
+    var delete = mutableListOf(true, true)
 
     fun addCrime(crime: Crime) {
         crimeRepository.addCrime(crime)
@@ -21,6 +24,7 @@ class CrimeListViewModel : ViewModel() {
     fun getCrimeFromPosition(position:Int): Crime {
         return crimeRepository.getCrimeFromPosition(position)
     }
+
 
 
 }

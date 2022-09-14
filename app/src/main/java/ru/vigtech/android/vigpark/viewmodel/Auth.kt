@@ -35,6 +35,8 @@ class Auth: ViewModel(){
 
         }
 
+    var aliveSwitch:MutableLiveData<Boolean> = MutableLiveData(false)
+
 
     fun MutableLiveData<Int>.savePreferences(num:Int){
 

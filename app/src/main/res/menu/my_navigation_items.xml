@@ -17,9 +17,10 @@
     <item android:id="@+id/new_crime"
     android:icon="@drawable/ic_cam"
     android:title="Новый объект"
-        android:visible="true"
+        android:visible="false"
 
     />
+
 
 
 </menu>

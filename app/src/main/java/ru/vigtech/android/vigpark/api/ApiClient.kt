@@ -6,6 +6,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import androidx.test.internal.runner.junit4.statement.UiThreadStatement.runOnUiThread
+import com.google.android.gms.tasks.OnFailureListener
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
@@ -21,7 +22,11 @@ import ru.vigtech.android.vigpark.api.PostPhoto
 import ru.vigtech.android.vigpark.database.Crime
 import ru.vigtech.android.vigpark.database.CrimeRepository
 import ru.vigtech.android.vigpark.fragment.CrimeListFragment
+import ru.vigtech.android.vigpark.tools.Diagnostics
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
 import kotlin.coroutines.coroutineContext
 
 
@@ -36,11 +41,13 @@ object ApiClient {
 
 
 
+
+
     private fun getRetroInstance(baseUrl: String): Retrofit {
             val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(60, TimeUnit.SECONDS)
                 .build()
             val gsonBuilder = GsonBuilder()
 
@@ -58,11 +65,13 @@ object ApiClient {
 
 
     fun POST_img64( img64_full: String, img_path: String, img_plate_path:String, zone:Int,long: Double, lat:Double, ) {
-        val post_api: PostInterface = retrofit.create(PostInterface::class.java)
         val crime = Crime(title = "Отправка на сервер", img_path = img_path, img_path_full = img_plate_path, send = true, found = true, Zone=zone, lon = long, lat = lat, Rect = ArrayList<String?>())
-        Log.w("Create", "create $crime")
         CrimeRepository.get().addCrime(crime)
-        val call: Call<PostPhoto> = post_api.postPlate(img64_full,zone, long, lat, authModel.uuidKey, authModel.secureKey)
+        val post_api: PostInterface = retrofit.create(PostInterface::class.java)
+        Log.w("Create", "create $crime")
+        val call: Call<PostPhoto> = post_api.postPlate(img64_full,zone, long, lat, authModel.uuidKey, authModel.secureKey,
+            SimpleDateFormat("YY-MM-dd HH:mm:ss").format(crime.date))
+
         call.enqueue(object : Callback<PostPhoto?> {
             override fun onResponse(call: Call<PostPhoto?>, response: Response<PostPhoto?>) {
                 try {
@@ -86,7 +95,7 @@ object ApiClient {
 
                             CrimeRepository.get().updateCrime(crime)
                         } else if (RESULT == "INVALID"){
-                            crime.title = "Ошибка лицензирований"
+                            crime.title = "Ошибка лицензирования"
                             crime.send = true
                             crime.found = true
                             crime.info = "Данное программное обеспечение защищено правом пользования. Произошла ошибка в ключе лицензирования при проверк на сервере. Просьба использовать программу в соответсвии договра пользования."
@@ -105,19 +114,25 @@ object ApiClient {
                             crime.found = false
                             CrimeRepository.get().updateCrime(crime)
                         }
+
+                        logApi(POST_PHOTO, crime)
+
                     } else {
                         Log.e("POST", "onResponse | status: $statusCode")
                         crime.title = "Сервер недоступен"
                         crime.send = false
                         crime.found = false
                         CrimeRepository.get().updateCrime(crime)
+                        logApi(crime = crime)
                     }
                 } catch (e: Exception) {
+                    Diagnostics.appendLog("${SimpleDateFormat("YYMMdd").format(Date())}_Api", "crime:$crime;uuid:${authModel.uuidKey};secureKey:${authModel.secureKey};isAuthSuccess:${authModel.authSuccess.value};error:$e")
                     Log.e("POST", "onResponse | exception", e)
                     crime.title = "Сервер недоступен"
                     crime.send = false
                     crime.found = false
                     CrimeRepository.get().updateCrime(crime)
+                    logApi(crime=crime)
 
                 }
             }
@@ -128,7 +143,8 @@ object ApiClient {
                 crime.send = false
                 crime.found = false
                 CrimeRepository.get().updateCrime(crime)
-
+                authModel.aliveSwitch.postValue(false)
+                logApi(crime=crime, onFailure = true)
             }
         })
 
@@ -142,12 +158,13 @@ object ApiClient {
         crime.info = ""
         CrimeRepository.get().updateCrime(crime)
         val post_api: PostInterface = retrofit.create(PostInterface::class.java)
-        val call: Call<PostPhoto> = post_api.postPlate(img64,crime.Zone, crime.lon, crime.lat, authModel.uuidKey, authModel.secureKey)
+        val call: Call<PostPhoto> = post_api.postPlate(img64,crime.Zone, crime.lon, crime.lat, authModel.uuidKey, authModel.secureKey,SimpleDateFormat("YY-MM-dd HH:mm:ss").format(crime.date))
         call.enqueue(object : Callback<PostPhoto?> {
             override fun onResponse(call: Call<PostPhoto?>, response: Response<PostPhoto?>) {
                 try {
                     val statusCode = response.code()
                     if (statusCode == 200) {
+
                         val POST_PHOTO: PostPhoto? = response.body()
 //                            val data_get: List<PostPhoto> = PostPhoto.getResponse()
                         val RESULT = POST_PHOTO?.RESULT.toString()
@@ -184,12 +201,15 @@ object ApiClient {
                             crime.info = "null"
                             CrimeRepository.get().updateCrime(crime)
                         }
+                        logApi(POST_PHOTO, crime)
+
                     } else {
                         Log.e("POST", "onResponse | status: $statusCode")
                         crime.send = false
                         crime.title  = "Сервер недоступен"
                         crime.info = ""
                         CrimeRepository.get().updateCrime(crime)
+                        logApi(crime=crime)
                     }
                 } catch (e: Exception) {
                     Log.e("POST", "onResponse | exception", e)
@@ -197,7 +217,8 @@ object ApiClient {
                     crime.info=""
                     crime.title  = "Сервер недоступен"
                     CrimeRepository.get().updateCrime(crime)
-
+                    Diagnostics.appendLog("${SimpleDateFormat("YYMMdd").format(Date())}_Api", "crime:$crime;uuid:${authModel.uuidKey};secureKey:${authModel.secureKey};isAuthSuccess:${authModel.authSuccess.value.toString()};error:$e")
+                    logApi(crime=crime)
                 }
             }
 
@@ -207,7 +228,8 @@ object ApiClient {
                 crime.title = "Сервер недоступен"
                 crime.info = ""
                 CrimeRepository.get().updateCrime(crime)
-
+                authModel.aliveSwitch.postValue(false)
+                logApi(crime=crime, onFailure = true)
             }
         })
 
@@ -224,7 +246,7 @@ object ApiClient {
         crime.info = ""
         CrimeRepository.get().updateCrime(crime)
         val call: Call<PostPhoto> =
-            post_api.postPlateEdited(img64, new_plate, crime.Zone, crime.lon, crime.lat, authModel.uuidKey, authModel.secureKey)
+            post_api.postPlateEdited(img64, new_plate, crime.Zone, crime.lon, crime.lat, authModel.uuidKey, authModel.secureKey,SimpleDateFormat("YY-MM-dd HH:mm:ss").format(crime.date))
         call.enqueue(object : Callback<PostPhoto?> {
             override fun onResponse(call: Call<PostPhoto?>, response: Response<PostPhoto?>) {
                 try {
@@ -282,6 +304,8 @@ object ApiClient {
                             }
                             CrimeRepository.get().updateCrime(crime)
                         }
+                        logApi(POST_PHOTO, crime)
+
                     } else {
                         crime.send = false
                         if (crime.title == "") {
@@ -296,6 +320,7 @@ object ApiClient {
 
                     }
                 } catch (e: Exception) {
+
                     Log.e("POST_img64_with_edited_text", "onResponse | exception", e)
                     crime.send = false
                     if (crime.title == "") {
@@ -306,11 +331,13 @@ object ApiClient {
                     crime.info = ""
                     crime.found = false
                     CrimeRepository.get().updateCrime(crime)
+                    logApi(crime = crime)
 
                 }
             }
 
             override fun onFailure(call: Call<PostPhoto?>, t: Throwable) {
+                authModel.aliveSwitch.postValue(false)
                 Log.e("POST_img64_with_edited_text", "onFailure", t)
                 crime.send = false
                 crime.found = false
@@ -321,14 +348,16 @@ object ApiClient {
                 }
                 crime.info = ""
                 CrimeRepository.get().updateCrime(crime)
-
+                logApi(crime = crime, onFailure = true)
             }
         })
     }
 
         fun postAuthKeys() {
             val post_api: PostInterface = retrofit.create(PostInterface::class.java)
-            val call: Call<PostPhoto> = post_api.postPlate("testKey",0, 0.0, 0.0, authModel.uuidKey, authModel.secureKey)
+            val call: Call<PostPhoto> = post_api.postPlate("testKey",0, 0.0, 0.0, authModel.uuidKey, authModel.secureKey,SimpleDateFormat("YY-MM-dd HH:mm:ss").format(
+                Date()
+            ))
             call.enqueue(object : Callback<PostPhoto?> {
                 override fun onResponse(call: Call<PostPhoto?>, response: Response<PostPhoto?>) {
                     try {
@@ -340,35 +369,50 @@ object ApiClient {
                             Log.w("POST_img64_with_edited_text", "onResponse| response: Result: $RESULT")
                             if (RESULT == "SUCCESS") {
                                 authModel.onCheckLicence(true)
+                                runOnUiThread {
+                                    Toast.makeText(authModel.context, "Лицензия Активирована", Toast.LENGTH_LONG ).show()
+                                }
                             }else if (RESULT == "INVALID"){
                                 authModel.onCheckLicence(false)
-
+                                runOnUiThread {
+                                    Toast.makeText(authModel.context, "Лицензия не прошла", Toast.LENGTH_LONG ).show()
+                                }
 
                         } else{
                                 authModel.onCheckLicence(true)
+                                runOnUiThread {
+                                    Toast.makeText(authModel.context, "Лицензия Активирована", Toast.LENGTH_LONG ).show()
+                                }
 
-//                            if(authModel.authSuccess.value == 2){
-//                                authModel.authSuccess.postValue(1)
-//                            }
                             }
+                            logApi(POST_PHOTO)
+
                         } else {
                             authModel.onCheckLicence(false)
-
+                            runOnUiThread {
+                                Toast.makeText(authModel.context, "Лицензия не прошла", Toast.LENGTH_LONG ).show()
+                            }
+                            logApi()
                         }
                     } catch (e: Exception) {
                         Log.e("POST_img64_with_edited_text", "onResponse | exception", e)
+
+                        runOnUiThread {
+                            Toast.makeText(authModel.context, "Ошибка приложения", Toast.LENGTH_LONG ).show()
+                        }
                         authModel.onCheckLicence(false)
-
-
-
-
+                        logApi()
                     }
                 }
 
                 override fun onFailure(call: Call<PostPhoto?>, t: Throwable) {
                     Log.e("POST_img64_with_edited_text", "onFailure", t)
-                    authModel.onCheckLicence(false)
 
+                    authModel.onCheckLicence(false)
+                    runOnUiThread {
+                        Toast.makeText(authModel.context, "Ошибка Сервера", Toast.LENGTH_LONG ).show()
+                    }
+                    logApi(onFailure = true)
                 }
             })
 
@@ -393,51 +437,157 @@ object ApiClient {
                             "onResponse| response: Result: $RESULT, info: $info "
                         )
                         if (RESULT == "SUCCESS") {
+                            authModel.aliveSwitch.postValue(true)
                             val new_zones = info.split(";").toSet()
                             if(new_zones != authModel.listOfAlias.value){
 
                                 authModel.savePreferences(new_zones)
                             }
                         } else if (RESULT == "INVALID") {
-                           authModel.onCheckLicence(false)
+                            authModel.aliveSwitch.postValue(false)
 
 
                         }else if (RESULT == "WARNING"){
+                            authModel.aliveSwitch.postValue(false)
                             runOnUiThread {
                                 Toast.makeText(authModel.context, "Ошибка сервера зоны не обновлены", Toast.LENGTH_LONG ).show()
                             }
+
                         }
                         else{ //todo error alias
+                            authModel.aliveSwitch.postValue(false)
                             runOnUiThread {
                                 Toast.makeText(authModel.context, "Ошибка сервера зоны не обновлены", Toast.LENGTH_LONG ).show()
                             }
+
                         }
+                        logApi(isZoneChecking = true, POST_PHOTO = POST_PHOTO)
                     } else {
                         Log.e("POST_img64_with_edited_text", "onResponse | status: $statusCode")
+                        authModel.aliveSwitch.postValue(false)
                         runOnUiThread {
                             Toast.makeText(authModel.context, "Ошибка сервера зоны не обновлены", Toast.LENGTH_LONG ).show()
                         }
-
+                        logApi(isZoneChecking = true)
                     }
                 } catch (e: Exception) {
                     Log.e("POST_img64_with_edited_text", "onResponse | exception", e)
+                    authModel.aliveSwitch.postValue(false)
                     runOnUiThread {
                         Toast.makeText(authModel.context, "Ошибка зоны не обновлены", Toast.LENGTH_LONG ).show()
                     }
-
-
+                    logApi(isZoneChecking = true)
                 }
             }
 
             override fun onFailure(call: Call<PostPhoto?>, t: Throwable) {
+                authModel.aliveSwitch.postValue(false)
                 runOnUiThread {
                     Toast.makeText(authModel.context, "Сервер недоступен", Toast.LENGTH_LONG ).show()
                 }
+
+                logApi(isZoneChecking = true, onFailure = true)
             }
         })
     }
 
 
+    fun logApi(
+        POST_PHOTO: PostPhoto? = null,
+        crime: Crime? = null,
+        onFailure: Boolean = false,
+        isZoneChecking: Boolean = false
+    ) {
+        if (crime != null) {
+            if (POST_PHOTO != null) {
+                Diagnostics.appendLog(
+                    "${SimpleDateFormat("YYMMdd").format(Date())}_Api",
+                    "date:${SimpleDateFormat("hh:mm:ss").format(Date())};" +
+                            "crime:$crime;" +
+                            "uuid:${authModel.uuidKey};" +
+                            "secureKey:${authModel.secureKey};" +
+                            "isAuthSuccess:${authModel.authSuccess.value.toString()};" +
+                            "resResult:${POST_PHOTO.RESULT};" +
+                            "resMsg:${POST_PHOTO.palteNumber};info:${POST_PHOTO.info}"
+                )
+            } else {
+                if (onFailure) {
+                    Diagnostics.appendLog(
+                        "${SimpleDateFormat("YYMMdd").format(Date())}_Api",
+                        "date:${SimpleDateFormat("hh:mm:ss").format(Date())};" +
+                                "crime:$crime;" +
+                                "uuid:${authModel.uuidKey};" +
+                                "secureKey:${authModel.secureKey};" +
+                                "isAuthSuccess:${authModel.authSuccess.value.toString()};" +
+                                "error:onFailure"
+                    )
+
+                } else {
+                    Diagnostics.appendLog(
+                        "${SimpleDateFormat("YYMMdd").format(Date())}_Api",
+                        "date:${SimpleDateFormat("hh:mm:ss").format(Date())};" +
+                                "crime:$crime;" +
+                                "uuid:${authModel.uuidKey};" +
+                                "secureKey:${authModel.secureKey};" +
+                                "isAuthSuccess:${authModel.authSuccess.value.toString()};" +
+                                "error:Error in Application"
+                    )
+
+                }
+            }
+        } else {
+            if (!isZoneChecking) {
+                if (onFailure) {
+                    Diagnostics.appendLog(
+                        "${SimpleDateFormat("YYMMdd").format(Date())}_Api",
+                        "date:${SimpleDateFormat("hh:mm:ss").format(Date())};" +
+                        "crime:PostAuthKeys;" +
+                                "uuid:${authModel.uuidKey};" +
+                                "secureKey:${authModel.secureKey};" +
+                                "isAuthSuccess:${authModel.authSuccess.value.toString()}" +
+                                ";error:onFailure"
+                    )
+
+                } else {
+                    Diagnostics.appendLog(
+                        "${SimpleDateFormat("YYMMdd").format(Date())}_Api",
+                        "date:${SimpleDateFormat("hh:mm:ss").format(Date())};" +
+                        "crime:PostAuthKeys;" +
+                                "uuid:${authModel.uuidKey};" +
+                                "secureKey:${authModel.secureKey};" +
+                                "isAuthSuccess:${authModel.authSuccess.value.toString()}" +
+                                ";resResult:${POST_PHOTO?.RESULT};"
+                    )
+
+                }
+            } else {
+                    if (onFailure) {
+                        Diagnostics.appendLog(
+                            "${SimpleDateFormat("YYMMdd").format(Date())}_Api",
+                            "date:${SimpleDateFormat("hh:mm:ss").format(Date())};" +
+                            "crime:zoneChecking;" +
+                                    "uuid:${authModel.uuidKey};" +
+                                    "secureKey:${authModel.secureKey};" +
+                                    "isAuthSuccess:${authModel.authSuccess.value.toString()}" +
+                                    ";error:onFailure"
+                        )
+
+                    } else {
+                        Diagnostics.appendLog(
+                            "${SimpleDateFormat("YYMMdd").format(Date())}_Api",
+                            "date:${SimpleDateFormat("hh:mm:ss").format(Date())};" +
+                            "crime:zoneChecking;" +
+                                    "uuid:${authModel.uuidKey};" +
+                                    "secureKey:${authModel.secureKey};" +
+                                    "isAuthSuccess:${authModel.authSuccess.value.toString()}" +
+                                    ";resResult:${POST_PHOTO?.RESULT};"
+                        )
+
+                    }
+
+            }
+        }
+    }
 
 
 }

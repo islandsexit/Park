@@ -30,6 +30,8 @@ import ru.vigtech.android.vigpark.database.Crime
 import ru.vigtech.android.vigpark.database.CrimeRepository
 import ru.vigtech.android.vigpark.fragment.CrimeFragment
 import ru.vigtech.android.vigpark.fragment.CrimeListFragment
+import ru.vigtech.android.vigpark.tools.Diagnostics
+import ru.vigtech.android.vigpark.tools.PicturesUtils
 import java.io.File
 import java.util.*
 import kotlin.system.exitProcess
@@ -39,6 +41,8 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
 
     lateinit var test_button: Button
     val crimeRepository = CrimeRepository.get()
+    var position = false
+
 
 
 
@@ -46,7 +50,7 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        Diagnostics.context = this
 
 //        ApiClient.buidAuthModule(this)
 
@@ -105,39 +109,96 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
         crimeRepository.addCrime(Crime())
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+            when (keyCode) {
+                27 ->{
+                    if (!position){
+                        if (PicturesUtils.canCam){
+                            val fm = supportFragmentManager
+                            val fragment: CrimeListFragment? =
+                                fm.findFragmentById(R.id.fragment_container) as CrimeListFragment?
+                            fragment?.photoButton?.callOnClick()
+                            fragment?.photoButton?.isPressed = true
+                            Handler().postDelayed(Runnable { fragment?.photoButton?.isPressed = false }, 500)
+                            }
+                        else{
+                            onBackPressed()
+                        }
+                        position = true
+                        return true
+
+                    }
+                }
+                KeyEvent.KEYCODE_MENU -> {
+
+                    return true
+                }
+                KeyEvent.KEYCODE_SEARCH -> {
+
+                    return true
+                }
+                KeyEvent.KEYCODE_BACK -> {
+                    onBackPressed()
+                    return true
+                }
+                KeyEvent.KEYCODE_VOLUME_UP ->
+                    if (!position){
+                        if (PicturesUtils.canCam){
+                            val fm = supportFragmentManager
+                            val fragment: CrimeListFragment? =
+                                fm.findFragmentById(R.id.fragment_container) as CrimeListFragment?
+                            fragment?.photoButton?.callOnClick()
+                            fragment?.photoButton?.isPressed = true
+                            Handler().postDelayed(Runnable { fragment?.photoButton?.isPressed = false }, 500)
+                        }
+                        else{
+                            onBackPressed()
+                        }
+                        position = true
+                        return true
+                    }
+                KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                    return false
+                }
+            }
+
+
+        return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean {
         Log.i("App_tag", "$keyCode")
-        when (keyCode) {
-            27 ->{
-                val fm = supportFragmentManager
-                val fragment: CrimeListFragment? =
-                    fm.findFragmentById(R.id.fragment_container) as CrimeListFragment?
-                fragment?.cameraxHelper?.takePicture()
-                return true
-            }
-            KeyEvent.KEYCODE_MENU -> {
 
-                return true
-            }
-            KeyEvent.KEYCODE_SEARCH -> {
+            when (keyCode) {
+                27 ->{
+                        position = false
+                        return true
+                    }
 
-                return true
+                KeyEvent.KEYCODE_MENU -> {
+
+                    return true
+                }
+                KeyEvent.KEYCODE_SEARCH -> {
+
+                    return true
+                }
+                KeyEvent.KEYCODE_BACK -> {
+                    onBackPressed()
+                    return true
+                }
+                KeyEvent.KEYCODE_VOLUME_UP ->{
+                    position = false
+                    return true
+                }
+
+
+                        KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                    return false
+                }
             }
-            KeyEvent.KEYCODE_BACK -> {
-                onBackPressed()
-                return true
-            }
-            KeyEvent.KEYCODE_VOLUME_UP -> {
-                val fm = supportFragmentManager
-                val fragment: CrimeListFragment? =
-                    fm.findFragmentById(R.id.fragment_container) as CrimeListFragment?
-                fragment?.cameraxHelper?.takePicture()
-                return true
-            }
-            KeyEvent.KEYCODE_VOLUME_DOWN -> {
-                return false
-            }
-        }
+
         return super.onKeyDown(keyCode, event)
     }
 
