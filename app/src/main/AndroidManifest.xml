@@ -13,9 +13,13 @@
     <uses-permission android:name="android.permission.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+
 
 
     <uses-feature android:name="android.hardware.camera" />
+
+
     <application
             android:name=".CriminalIntentApplication"
             android:allowBackup="true"
@@ -29,7 +33,15 @@
 
         android:preserveLegacyExternalStorage="true"
         tools:targetApi="r">
-
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_path" />
+        </provider>
         <activity android:name=".MainActivity"
             android:screenOrientation="portrait"
             android:exported="true"

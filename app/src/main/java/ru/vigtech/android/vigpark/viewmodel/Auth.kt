@@ -12,15 +12,19 @@ import java.util.*
 
 
 class Auth: ViewModel(){
+
     private val UUIDKEY = "uuidKey"
     private val SECUREKEY = "secureKey"
     private val AUTHSUCCESS = "authSuccess"
     private val LISTOFALIAS = "listOfAlias"
+    private val APPVERSION = "listOfAlias"
 
     lateinit var context: Context
     private lateinit var preferences: SharedPreferences
     private lateinit var editor:SharedPreferences.Editor
 
+
+    var version: MutableLiveData<String> = MutableLiveData("1.0")
 
 
     var authSuccess: MutableLiveData<Int> = MutableLiveData()
@@ -80,6 +84,7 @@ class Auth: ViewModel(){
 
                 authSuccess = MutableLiveData(preferences.getInt(AUTHSUCCESS, 1))
                 listOfAlias = MutableLiveData(preferences.getStringSet(LISTOFALIAS, setOf("1", "2", "3")))
+
 
                 Log.i("AUTHC", "uuidKey: ${preferences.getString(UUIDKEY, "none")}, authSucess: ${preferences.getInt(
                     AUTHSUCCESS, 4)}, secKey:${preferences.getString(SECUREKEY, "none")}, listOfAlias: ${preferences.getStringSet(LISTOFALIAS, setOf("none"))}")

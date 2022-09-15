@@ -1,40 +1,30 @@
 package ru.vigtech.android.vigpark
 
 import android.Manifest
-import android.content.DialogInterface
 import android.content.Intent
-import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.os.Handler
 import android.provider.Settings
-import android.text.SpannableStringBuilder
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
-import androidx.lifecycle.get
-import androidx.preference.PreferenceManager
-import kotlinx.coroutines.*
-import okhttp3.internal.wait
-import ru.vigtech.android.vigpark.api.ApiClient
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Runnable
 import ru.vigtech.android.vigpark.database.Crime
 import ru.vigtech.android.vigpark.database.CrimeRepository
 import ru.vigtech.android.vigpark.fragment.CrimeFragment
 import ru.vigtech.android.vigpark.fragment.CrimeListFragment
 import ru.vigtech.android.vigpark.tools.Diagnostics
 import ru.vigtech.android.vigpark.tools.PicturesUtils
-import java.io.File
 import java.util.*
-import kotlin.system.exitProcess
 
 
 class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
@@ -52,7 +42,10 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
         setContentView(R.layout.activity_main)
         Diagnostics.context = this
 
+
+
 //        ApiClient.buidAuthModule(this)
+
 
 
         if (Build.VERSION.SDK_INT >= 30) {
@@ -79,6 +72,27 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
             )
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!packageManager.canRequestPackageInstalls()) {
+                startActivityForResult(
+                    Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).setData(
+                        Uri.parse(
+                            String.format(
+                                "package:%s",
+                                packageName
+                            )
+                        )
+                    ), 1234
+                )
+            } else {
+            }
+        }
+
+        //Storage Permission
+
+
+
+
 
         val currentFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container)
@@ -90,6 +104,9 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
                 .add(R.id.fragment_container, fragment)
                 .commit()
         }
+
+
+
 
     }
 
@@ -185,7 +202,6 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
                     return true
                 }
                 KeyEvent.KEYCODE_BACK -> {
-                    onBackPressed()
                     return true
                 }
                 KeyEvent.KEYCODE_VOLUME_UP ->{
@@ -201,6 +217,10 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
 
         return super.onKeyDown(keyCode, event)
     }
+
+
+
+
 
 
 }

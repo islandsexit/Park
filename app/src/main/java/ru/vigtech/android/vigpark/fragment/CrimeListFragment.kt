@@ -3,6 +3,7 @@ package ru.vigtech.android.vigpark.fragment
 import android.Manifest
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
+import android.app.DownloadManager
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -25,6 +26,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.core.TorchState
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat.registerReceiver
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
@@ -39,10 +43,10 @@ import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.vision.text.Text
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -54,8 +58,10 @@ import ru.vigtech.android.vigpark.database.Crime
 import ru.vigtech.android.vigpark.database.CrimeRepository
 import ru.vigtech.android.vigpark.swipe.SwipeToDeleteCallback
 import ru.vigtech.android.vigpark.swipe.SwipeToResendCallback
+import ru.vigtech.android.vigpark.tools.Diagnostics
 import ru.vigtech.android.vigpark.tools.PicturesUtils
 import ru.vigtech.android.vigpark.tools.SizeHelper
+import ru.vigtech.android.vigpark.update.DownloadController
 import ru.vigtech.android.vigpark.viewmodel.Auth
 import ru.vigtech.android.vigpark.viewmodel.CrimeListViewModel
 import java.io.*
@@ -142,6 +148,9 @@ class CrimeListFragment : Fragment(),
 
 
     private var callbacks: Callbacks? = null
+
+
+    lateinit var downloadController: DownloadController
 
 
     interface Callbacks {
@@ -475,6 +484,8 @@ class CrimeListFragment : Fragment(),
         viewModel = ViewModelProvider(this).get(Auth::class.java)
         viewModel.context = requireContext()
         viewModel.initViewModel()
+
+
         val authObserver = Observer<Int>{
             alertKey(it, viewModel)
 
@@ -484,6 +495,10 @@ class CrimeListFragment : Fragment(),
                 resendAllUnsendCrimes()
 
             }
+        }
+        val versionObserver = Observer<String> {
+           //todo version observer
+
         }
 
 
@@ -499,7 +514,8 @@ class CrimeListFragment : Fragment(),
 //        }
 
         val textForNav = TextView(requireContext())
-        textForNav.setText(viewModel.secureKey)
+        textForNav.setText("Name: ${viewModel.secureKey} Vers:${viewModel.version}")
+        textForNav.textSize = 8.0f
 
         navView.addView(textForNav)
 
@@ -830,7 +846,7 @@ class CrimeListFragment : Fragment(),
 
     override fun onDestroy() {
         super.onDestroy()
-        getActivity()?.getApplicationContext()?.unregisterReceiver(myReceiver);
+//        getActivity()?.getApplicationContext()?.unregisterReceiver(myReceiver);
 
     }
 
@@ -1056,7 +1072,7 @@ class CrimeListFragment : Fragment(),
                 }
 
             }catch (e:Exception){
-
+                Log.e("ERROR", "in reciver")
             }
 
         }

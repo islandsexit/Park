@@ -432,6 +432,7 @@ object ApiClient {
                         val POST_PHOTO: PostPhoto? = response.body()
                         val RESULT = POST_PHOTO?.RESULT.toString()
                         val info = POST_PHOTO?.info.toString()
+                        val msg = POST_PHOTO?.palteNumber.toString()
                         Log.e(
                             "POST_CHECK_ZONE",
                             "onResponse| response: Result: $RESULT, info: $info "
