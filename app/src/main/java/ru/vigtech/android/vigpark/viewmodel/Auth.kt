@@ -12,7 +12,7 @@ import java.util.*
 
 
 class Auth: ViewModel(){
-
+    private val VERSION = "1.0"
     private val UUIDKEY = "uuidKey"
     private val SECUREKEY = "secureKey"
     private val AUTHSUCCESS = "authSuccess"
@@ -24,7 +24,11 @@ class Auth: ViewModel(){
     private lateinit var editor:SharedPreferences.Editor
 
 
-    var version: MutableLiveData<String> = MutableLiveData("1.0")
+    var version: MutableLiveData<String> = MutableLiveData(VERSION)
+        set(value) {
+            field = value
+            editor.putString(APPVERSION, value.value!!).commit()
+        }
 
 
     var authSuccess: MutableLiveData<Int> = MutableLiveData()

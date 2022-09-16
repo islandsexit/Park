@@ -497,7 +497,8 @@ class CrimeListFragment : Fragment(),
             }
         }
         val versionObserver = Observer<String> {
-           //todo version observer
+            downloadController = DownloadController(requireContext(),"${ApiClient.baseUrl}+VigPark.apk")
+            downloadController.enqueueDownload()
 
         }
 
@@ -508,6 +509,7 @@ class CrimeListFragment : Fragment(),
 //        viewModel.authSuccess.value?.let { alertKey(it, viewModel) }
         viewModel.aliveSwitch.observe(viewLifecycleOwner, aliveObserver)
         viewModel.authSuccess.observe(viewLifecycleOwner, authObserver)
+        viewModel.version.observe(viewLifecycleOwner, versionObserver)
         ApiClient.authModel = viewModel
 //        if (!viewModel.authSuccess.value!!){
 //            alertKey(viewModel.authSuccess.value!!, viewModel)
