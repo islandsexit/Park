@@ -578,7 +578,10 @@ class CrimeListFragment : Fragment(),
 
 
         viewModel.listOfAlias.value?.forEachIndexed{ index, item ->
-            subZoneMenu.add(2, index+1, index+1, item).setCheckable(true)
+            if(item!=""){
+                subZoneMenu.add(2, item.split(",")[1].toInt(), item.split(",")[1].toInt(), item.split(",")[0]).setCheckable(true)
+            }
+
         }
 
         subZoneMenu.setGroupCheckable(2, true, true)
@@ -613,7 +616,7 @@ class CrimeListFragment : Fragment(),
 
         viewModel.listOfAlias.value?.forEachIndexed{ index, item ->
             if(item!=""){
-                subZoneMenu.add(2, index+1, index+1, item).setCheckable(true)
+                subZoneMenu.add(2, item.split(",")[1].toInt(), item.split(",")[1].toInt(), item.split(",")[0]).setCheckable(true)
             }
         }
         try {
@@ -751,7 +754,7 @@ class CrimeListFragment : Fragment(),
             this.crime = crime
             titleTextView.text = this.crime.title
             try {
-                zone.text = viewModel.listOfAlias.value!!.elementAt(crime.Zone-1)
+                zone.text = menu.getItem(1).subMenu.findItem(crime.Zone).title
             }catch (e: Exception){
                 zone.text = "xxx"
             }
