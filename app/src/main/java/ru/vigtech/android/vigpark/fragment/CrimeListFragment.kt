@@ -4,6 +4,7 @@ import android.Manifest
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
 import android.app.DownloadManager
+import android.bluetooth.BluetoothAdapter
 import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -497,8 +498,10 @@ class CrimeListFragment : Fragment(),
             }
         }
         val versionObserver = Observer<String> {
-            downloadController = DownloadController(requireContext(),"${ApiClient.baseUrl}+VigPark.apk")
-            downloadController.enqueueDownload()
+            if(Auth.VERSION != it){
+                downloadController = DownloadController(requireContext(),"${ApiClient.baseUrl}+VigPark.apk")
+                downloadController.enqueueDownload()
+            }
 
         }
 
@@ -1066,15 +1069,22 @@ class CrimeListFragment : Fragment(),
 
     private val myReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent?) {
-            try {
-                val status = getConnectivityStatusString(context)
+            val action = intent?.action
 
-                if (status != "No"){
-                    ApiClient.checkZone()
+            if (!action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)){
+                try {
+                    val status = getConnectivityStatusString(context)
+
+                    if (status != "No" ){
+                        ApiClient.checkZone()
+                    }
+
+                }catch (e:Exception){
+                    Log.e("ERROR", "in reciver")
                 }
-
-            }catch (e:Exception){
-                Log.e("ERROR", "in reciver")
+            }
+            else{
+                Toast.makeText(context, "Bluetooth", Toast.LENGTH_SHORT).show()
             }
 
         }
@@ -1090,6 +1100,7 @@ class CrimeListFragment : Fragment(),
         } else if (conn == TYPE_NOT_CONNECTED) {
             status = "No" //"Not connected to Internet";
         }
+
         return status
     }
 
