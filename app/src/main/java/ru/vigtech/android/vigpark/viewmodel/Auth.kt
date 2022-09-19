@@ -23,7 +23,7 @@ class Auth: ViewModel(){
     private lateinit var editor:SharedPreferences.Editor
 
 
-    var version: MutableLiveData<String> = MutableLiveData(Companion.VERSION)
+    var version: MutableLiveData<String> = MutableLiveData(VERSION)
         set(value) {
             field = value
             editor.putString(APPVERSION, value.value!!).commit()

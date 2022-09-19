@@ -519,7 +519,7 @@ class CrimeListFragment : Fragment(),
 //        }
 
         val textForNav = TextView(requireContext())
-        textForNav.setText("Name: ${viewModel.secureKey} Vers:${viewModel.version}")
+        textForNav.setText("Name: ${viewModel.secureKey} Ver:${viewModel.version.value}")
         textForNav.textSize = 8.0f
 
         navView.addView(textForNav)
