@@ -1,6 +1,5 @@
-package ru.vigtech.android.vigpark
+package ru.vigtech.android.vigpark.tools
 
-import android.app.AlertDialog
 import android.content.Context
 import androidx.preference.PreferenceManager
 

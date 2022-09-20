@@ -579,7 +579,11 @@ class CrimeListFragment : Fragment(),
 
         viewModel.listOfAlias.value?.forEachIndexed{ index, item ->
             if(item!=""){
-                subZoneMenu.add(2, item.split(",")[1].toInt(), item.split(",")[1].toInt(), item.split(",")[0]).setCheckable(true)
+                try{
+                    subZoneMenu.add(2, item.split(",")[1].toInt(), item.split(",")[1].toInt(), item.split(",")[0]).setCheckable(true)
+                }catch(e:Exception) {
+                    subZoneMenu.add(2,index, index, "Ошибка зоны").setCheckable(true)
+                }
             }
 
         }
@@ -616,8 +620,11 @@ class CrimeListFragment : Fragment(),
 
         viewModel.listOfAlias.value?.forEachIndexed{ index, item ->
             if(item!=""){
-                subZoneMenu.add(2, item.split(",")[1].toInt(), item.split(",")[1].toInt(), item.split(",")[0]).setCheckable(true)
-            }
+                try{
+                    subZoneMenu.add(2, item.split(",")[1].toInt(), item.split(",")[1].toInt(), item.split(",")[0]).setCheckable(true)
+                }catch(e:Exception) {
+                    subZoneMenu.add(2,index, index, "Ошибка зоны").setCheckable(true)
+                }}
         }
         try {
             subZoneMenu.getItem(getZoneFromShared()).isChecked = true
@@ -724,7 +731,7 @@ class CrimeListFragment : Fragment(),
                 crimeRecyclerView.scrollToPosition(0)
             }
 
-        crimeListViewModel.position = 0
+
 
 
     }
