@@ -60,6 +60,7 @@ object ApiClient {
 
     fun reBuildRetrofit(ip: String){
         retrofit = getRetroInstance(ip)
+        baseUrl = ip
     }
 
 
@@ -433,6 +434,7 @@ object ApiClient {
                         val RESULT = POST_PHOTO?.RESULT.toString()
                         val info = POST_PHOTO?.info.toString()
                         val msg = POST_PHOTO?.palteNumber.toString()
+                        val version = POST_PHOTO?.version
                         Log.e(
                             "POST_CHECK_ZONE",
                             "onResponse| response: Result: $RESULT, info: $info "
@@ -444,6 +446,13 @@ object ApiClient {
 
                                 authModel.savePreferences(new_zones)
                             }
+
+
+                            if(version != Auth.VERSION && version!=null){
+                                authModel.version.postValue(version)
+
+                            }
+
                         } else if (RESULT == "INVALID") {
                             authModel.aliveSwitch.postValue(false)
 
@@ -509,7 +518,8 @@ object ApiClient {
                             "secureKey:${authModel.secureKey};" +
                             "isAuthSuccess:${authModel.authSuccess.value.toString()};" +
                             "resResult:${POST_PHOTO.RESULT};" +
-                            "resMsg:${POST_PHOTO.palteNumber};info:${POST_PHOTO.info}"
+                            "resMsg:${POST_PHOTO.palteNumber};info:${POST_PHOTO.info};"+
+                            "version:${Auth.VERSION}"
                 )
             } else {
                 if (onFailure) {
@@ -520,7 +530,8 @@ object ApiClient {
                                 "uuid:${authModel.uuidKey};" +
                                 "secureKey:${authModel.secureKey};" +
                                 "isAuthSuccess:${authModel.authSuccess.value.toString()};" +
-                                "error:onFailure"
+                                "error:onFailure;"+
+                                "version:${Auth.VERSION}"
                     )
 
                 } else {
@@ -531,7 +542,8 @@ object ApiClient {
                                 "uuid:${authModel.uuidKey};" +
                                 "secureKey:${authModel.secureKey};" +
                                 "isAuthSuccess:${authModel.authSuccess.value.toString()};" +
-                                "error:Error in Application"
+                                "error:Error in Application;"+
+                                "version:${Auth.VERSION}"
                     )
 
                 }
@@ -546,7 +558,8 @@ object ApiClient {
                                 "uuid:${authModel.uuidKey};" +
                                 "secureKey:${authModel.secureKey};" +
                                 "isAuthSuccess:${authModel.authSuccess.value.toString()}" +
-                                ";error:onFailure"
+                                ";error:onFailure;"+
+                                "version:${Auth.VERSION}"
                     )
 
                 } else {
@@ -557,7 +570,8 @@ object ApiClient {
                                 "uuid:${authModel.uuidKey};" +
                                 "secureKey:${authModel.secureKey};" +
                                 "isAuthSuccess:${authModel.authSuccess.value.toString()}" +
-                                ";resResult:${POST_PHOTO?.RESULT};"
+                                ";resResult:${POST_PHOTO?.RESULT};"+
+                                "version:${Auth.VERSION}"
                     )
 
                 }
@@ -570,7 +584,8 @@ object ApiClient {
                                     "uuid:${authModel.uuidKey};" +
                                     "secureKey:${authModel.secureKey};" +
                                     "isAuthSuccess:${authModel.authSuccess.value.toString()}" +
-                                    ";error:onFailure"
+                                    ";error:onFailure;"+
+                                    "version:${Auth.VERSION}"
                         )
 
                     } else {
@@ -581,7 +596,8 @@ object ApiClient {
                                     "uuid:${authModel.uuidKey};" +
                                     "secureKey:${authModel.secureKey};" +
                                     "isAuthSuccess:${authModel.authSuccess.value.toString()}" +
-                                    ";resResult:${POST_PHOTO?.RESULT};"
+                                    ";resResult:${POST_PHOTO?.RESULT};"+
+                                    "version:${Auth.VERSION}"
                         )
 
                     }

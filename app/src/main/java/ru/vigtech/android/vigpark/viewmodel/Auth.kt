@@ -24,10 +24,7 @@ class Auth: ViewModel(){
 
 
     var version: MutableLiveData<String> = MutableLiveData(VERSION)
-        set(value) {
-            field = value
-            editor.putString(APPVERSION, value.value!!).commit()
-        }
+
 
 
     var authSuccess: MutableLiveData<Int> = MutableLiveData()
@@ -110,7 +107,7 @@ class Auth: ViewModel(){
             }
 
     companion object {
-        const val VERSION = "1.0"
+        var VERSION = "1.1"
     }
 }
 

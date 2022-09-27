@@ -485,6 +485,7 @@ class CrimeListFragment : Fragment(),
         viewModel = ViewModelProvider(this).get(Auth::class.java)
         viewModel.context = requireContext()
         viewModel.initViewModel()
+        downloadController = DownloadController(requireContext(),"${ApiClient.baseUrl}download/vigpark.apk")
 
 
         val authObserver = Observer<Int>{
@@ -498,12 +499,14 @@ class CrimeListFragment : Fragment(),
             }
         }
         val versionObserver = Observer<String> {
-            if(Auth.VERSION != it){
-                downloadController = DownloadController(requireContext(),"${ApiClient.baseUrl}+VigPark.apk")
+            if(Auth.VERSION!=it){
                 downloadController.enqueueDownload()
+
             }
 
+
         }
+
 
 
 
@@ -948,7 +951,11 @@ class CrimeListFragment : Fragment(),
         val preferences: SharedPreferences =
             PreferenceManager.getDefaultSharedPreferences(requireContext())
         val url = preferences.getString("ip", "http://95.182.74.37:1234/")
+
         if (!url.equals("", ignoreCase = true)) {
+            if (url != null) {
+                ApiClient.baseUrl = url
+            }
             return url
         } else {
             return "http://95.182.74.37:1234/"
