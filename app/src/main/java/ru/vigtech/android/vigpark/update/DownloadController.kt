@@ -184,9 +184,9 @@ class DownloadController(private val context: Context, private val url: String) 
     private fun dialogInstallError(msg: String){
         val dialog = AlertDialog.Builder(context)
         dialog.setTitle("Доступно обновление")
-            .setMessage("Произошла ошибка во время загрузки.\nНе выключайте устройство\n$msg")
+            .setMessage("Произошла ошибка во время загрузки.\nПодключитесь к сети.\n$msg")
             .setCancelable(false)
-            .setPositiveButton("Скачать заново") { dialog, whichButton ->
+            .setPositiveButton("Я подключен к сети") { dialog, whichButton ->
                 this.enqueueDownload()
             }
         dialog.show()

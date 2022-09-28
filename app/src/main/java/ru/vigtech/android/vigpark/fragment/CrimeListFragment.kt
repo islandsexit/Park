@@ -141,7 +141,6 @@ class CrimeListFragment : Fragment(),
     private lateinit var navView: NavigationView
     var zone: Int = 0
 
-
     private var adapter: CrimeAdapter? = CrimeAdapter(emptyList())
     val crimeListViewModel: CrimeListViewModel by lazy {
         ViewModelProviders.of(this).get(CrimeListViewModel::class.java)
@@ -250,7 +249,7 @@ class CrimeListFragment : Fragment(),
         photoButton = view.findViewById(R.id.camera_button) as ImageButton
 //        crimeRecyclerView.setHasFixedSize(true)
         crimeRecyclerView.setItemViewCacheSize(50)
-
+        crimeRecyclerView.setHasFixedSize(true)
         photoButton.setOnClickListener {
             try {
                 crimeListViewModel.position = 0
@@ -722,6 +721,7 @@ class CrimeListFragment : Fragment(),
         } ?: run {
             adapter = CrimeAdapter(crimes)
             adapter!!.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+            adapter!!.setHasStableIds(true);
 
         }
 
@@ -751,11 +751,14 @@ class CrimeListFragment : Fragment(),
         private val foundIcon: ImageView = itemView.findViewById(R.id.not_found)
         private val infoDot: ImageView = itemView.findViewById(R.id.crime_info_dot)
         private val zone: TextView = itemView.findViewById(R.id.crime_zone)
+        private lateinit var bFactoryOptions:BitmapFactory.Options
 
 
         init {
             itemView.setOnClickListener(this)
             itemView.setOnLongClickListener(this)
+            bFactoryOptions = BitmapFactory.Options()
+            bFactoryOptions.inPreferredConfig = Bitmap.Config.RGB_565
 
         }
 
@@ -771,7 +774,7 @@ class CrimeListFragment : Fragment(),
             dateTextView.text = SimpleDateFormat("dd.MM HH:mm").format(this.crime.date)
 //            var path_to_image = "/storage/emulated/0/${crime.img_path}"
             if (File(crime.img_path).exists() && crime.img_path != "") {
-                mybitmap = BitmapFactory.decodeFile(crime.img_path)
+                mybitmap = BitmapFactory.decodeFile(crime.img_path, bFactoryOptions)
                 solvedImageView.setImageBitmap(Bitmap.createScaledBitmap(mybitmap, 120, 120, false))
                 solvedImageView.visibility = View.VISIBLE
             } else {
