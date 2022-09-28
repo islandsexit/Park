@@ -101,7 +101,7 @@ class Auth: ViewModel(){
                 }
 
 
-                Log.i("AUTHC", "uuidKey: ${preferences.getString(UUIDKEY, "none")}, authSucess: ${preferences.getInt(
+                Log.i("AUTHqC", "uuidKey: ${preferences.getString(UUIDKEY, "none")}, authSucess: ${preferences.getInt(
                     AUTHSUCCESS, 4)}, secKey:${preferences.getString(SECUREKEY, "none")}")
 
             }
