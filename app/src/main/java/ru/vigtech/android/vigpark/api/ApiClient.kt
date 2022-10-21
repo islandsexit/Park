@@ -36,7 +36,7 @@ object ApiClient {
     var retrofit: Retrofit = getRetroInstance(baseUrl)
 
     lateinit var authModel: Auth
-
+    lateinit var okHttpClient: OkHttpClient
 
 
 
@@ -44,13 +44,12 @@ object ApiClient {
 
 
     private fun getRetroInstance(baseUrl: String): Retrofit {
-            val okHttpClient: OkHttpClient = OkHttpClient.Builder()
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
-                .writeTimeout(60, TimeUnit.SECONDS)
-                .build()
+        okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(29, TimeUnit.SECONDS)
+            .readTimeout(29, TimeUnit.SECONDS)
+            .writeTimeout(29, TimeUnit.SECONDS)
+            .build()
             val gsonBuilder = GsonBuilder()
-
             return Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .client(okHttpClient)
@@ -61,6 +60,10 @@ object ApiClient {
     fun reBuildRetrofit(ip: String){
         retrofit = getRetroInstance(ip)
         baseUrl = ip
+    }
+
+    fun cancelApiCalls(){
+        okHttpClient.dispatcher.cancelAll()
     }
 
 
@@ -500,6 +503,8 @@ object ApiClient {
             }
         })
     }
+
+
 
 
     fun logApi(
