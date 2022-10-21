@@ -868,7 +868,7 @@ class CrimeListFragment : Fragment(),
     override fun onDestroy() {
         super.onDestroy()
 //        getActivity()?.getApplicationContext()?.unregisterReceiver(myReceiver);
-
+        ApiClient.cancelApiCalls()
     }
 
 
@@ -882,6 +882,7 @@ class CrimeListFragment : Fragment(),
         if (mGoogleApiClient!!.isConnected()) {
             mGoogleApiClient!!.disconnect()
         }
+        ApiClient.cancelApiCalls()
     }
 
     override fun onStart() {
@@ -899,6 +900,31 @@ class CrimeListFragment : Fragment(),
                 }
             }
         )
+
+        crimeListViewModel.crimeUnsendAndNotRemembered.observe(viewLifecycleOwner,Observer {crimes ->
+            crimes?.let {
+                Log.i(TAG, "Got crimeUnsendAndNotRemembered ${crimes.size}")
+                if(ApiClient.okHttpClient.dispatcher.runningCallsCount()==0){
+                    Toast.makeText(requireContext(), "${crimes.size}", Toast.LENGTH_LONG).show()
+                    CoroutineScope(Dispatchers.Default).launch {
+                        for (crime in crimes){
+                            val timeStart = crime.date.time
+                            val timeNow = Date().time
+                            val diff = timeNow-timeStart
+                            if(diff>30000){
+                                crime.title = "Прервана отправка"
+                                crime.send = false
+                                crime.found = false
+                                CrimeRepository.get().updateCrime(crime)
+                            }
+
+
+
+                        }
+                    }
+                }
+            }
+            })
 
 
 
@@ -937,13 +963,13 @@ class CrimeListFragment : Fragment(),
 
     fun resendAllUnsendCrimes(){
         crimeListViewModel.crimeUnsendLiveData.observeOnce(viewLifecycleOwner, Observer {
-            crimes ->
+                crimes ->
             CoroutineScope(Dispatchers.Default).launch {
-                    for(crime in crimes){
-                        ResendCrime(crime)
+                for(crime in crimes){
+                    ResendCrime(crime)
 
-                    }
                 }
+            }
 
         })
 
