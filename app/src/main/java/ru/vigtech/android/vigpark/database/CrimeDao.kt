@@ -13,6 +13,9 @@ interface CrimeDao {
     @Query("SELECT * FROM crime WHERE send = 0")
     fun getUnsendCrimes(): LiveData<List<Crime>>
 
+    @Query("SELECT * FROM crime WHERE title =\"Отправка на сервер\"")
+    fun getUnsendAndNotRememberedCrimes():LiveData<List<Crime>>
+
     @Query("SELECT * FROM crime  ORDER BY date DESC LIMIT 1 OFFSET (:position)")
     fun getCrimeFromPosition(position: Int): Crime
 
