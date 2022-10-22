@@ -311,7 +311,6 @@ class CrimeListFragment : Fragment(),
                 R.id.ip_configuration -> {
                     var count = 0
                     val alert = AlertDialog.Builder(requireContext())
-                    val rg = RadioGroup(requireContext())
 
                     val options = arrayOf("http://192.168.48.91:1234/","http://192.168.48.51:1234/", "http://95.182.74.37:1234/" )
 
