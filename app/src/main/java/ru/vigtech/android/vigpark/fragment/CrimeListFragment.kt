@@ -905,7 +905,7 @@ class CrimeListFragment : Fragment(),
             crimes?.let {
                 Log.i(TAG, "Got crimeUnsendAndNotRemembered ${crimes.size}")
                 if(ApiClient.okHttpClient.dispatcher.runningCallsCount()==0){
-                    Toast.makeText(requireContext(), "${crimes.size}", Toast.LENGTH_LONG).show()
+//                    Toast.makeText(requireContext(), "${crimes.size}", Toast.LENGTH_LONG).show()
                     CoroutineScope(Dispatchers.Default).launch {
                         for (crime in crimes){
                             val timeStart = crime.date.time
