@@ -3,7 +3,6 @@ package ru.vigtech.android.vigpark.fragment
 import android.Manifest
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.annotation.SuppressLint
-import android.app.DownloadManager
 import android.bluetooth.BluetoothAdapter
 import android.content.*
 import android.content.pm.PackageManager
@@ -27,9 +26,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.core.TorchState
-import androidx.core.content.ContextCompat
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.content.ContextCompat.registerReceiver
+import androidx.core.content.PermissionChecker
+import androidx.core.content.PermissionChecker.checkSelfPermission
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.drawerlayout.widget.DrawerLayout.DrawerListener
 import androidx.fragment.app.Fragment
@@ -47,7 +45,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.navigation.NavigationView
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -59,7 +56,6 @@ import ru.vigtech.android.vigpark.database.Crime
 import ru.vigtech.android.vigpark.database.CrimeRepository
 import ru.vigtech.android.vigpark.swipe.SwipeToDeleteCallback
 import ru.vigtech.android.vigpark.swipe.SwipeToResendCallback
-import ru.vigtech.android.vigpark.tools.Diagnostics
 import ru.vigtech.android.vigpark.tools.PicturesUtils
 import ru.vigtech.android.vigpark.tools.SizeHelper
 import ru.vigtech.android.vigpark.update.DownloadController
@@ -418,6 +414,15 @@ class CrimeListFragment : Fragment(),
                     alert11.show()
 
 
+                    true
+                }
+
+                R.id.check_balance ->{
+                    if(checkSelfPermission(requireContext(),Manifest.permission.CALL_PHONE)!= PermissionChecker.PERMISSION_GRANTED){
+                        requestPermissions(arrayOf(Manifest.permission.CALL_PHONE),1)
+                    }else{
+                            checkBalance()
+                    }
                     true
                 }
                 else -> {
@@ -1160,7 +1165,23 @@ class CrimeListFragment : Fragment(),
         return TYPE_NOT_CONNECTED
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when(requestCode){
+            1->{checkBalance()}
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
 
+
+    fun checkBalance(){
+        val encodedHash = Uri.encode("#")
+        val ussd = "*100$encodedHash"
+        startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$ussd")))
+    }
 }
 
 

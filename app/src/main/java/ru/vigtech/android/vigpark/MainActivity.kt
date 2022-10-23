@@ -57,10 +57,10 @@ class MainActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
         }
 
 
+
         val MY_CAMERA_REQUEST: Int = 2
         if (checkSelfPermission(
-                Manifest.permission.CAMERA
-            ) != PackageManager.PERMISSION_GRANTED
+                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
         ) {
             requestPermissions(
                 arrayOf(
