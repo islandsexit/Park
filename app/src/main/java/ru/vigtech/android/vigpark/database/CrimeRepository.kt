@@ -33,6 +33,8 @@ class CrimeRepository private constructor(context: Context) {
 
     fun getCrime(id: UUID): LiveData<Crime?> = crimeDao.getCrime(id)
 
+
+
     fun getCrimeFromPosition(position: Int): Crime = crimeDao.getCrimeFromPosition(position)
 
     fun deleteCrime(crime: Crime) = crimeDao.deleteCrime(crime)

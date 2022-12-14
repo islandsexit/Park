@@ -258,13 +258,11 @@ class CrimeListFragment : Fragment(),
         }
 
 
-
-
-
         //todo свайп
         val swipeHandler = object : SwipeToDeleteCallback(this.context) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                lastFirstVisiblePosition = (crimeRecyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
+                lastFirstVisiblePosition =
+                    (crimeRecyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
                 val adapterPosition = viewHolder.adapterPosition
                 crimeRecyclerView.adapter?.notifyItemRemoved(adapterPosition)
                 crimeListViewModel.position = lastFirstVisiblePosition
@@ -287,7 +285,8 @@ class CrimeListFragment : Fragment(),
         val swipeHandlerResend = object : SwipeToResendCallback(this.context) {
             @SuppressLint("NotifyDataSetChanged")
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                lastFirstVisiblePosition = (crimeRecyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
+                lastFirstVisiblePosition =
+                    (crimeRecyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
                 val adapterPosition = viewHolder.adapterPosition
                 crimeListViewModel.position = lastFirstVisiblePosition
                 CoroutineScope(Dispatchers.Default).launch {
@@ -308,23 +307,31 @@ class CrimeListFragment : Fragment(),
                     var count = 0
                     val alert = AlertDialog.Builder(requireContext())
 
-                    val options = arrayOf("http://192.168.48.91:1234/","http://192.168.48.51:1234/", "http://95.182.74.37:1234/" )
-
-
+                    val options = arrayOf(
+                        "http://192.168.48.91:1234/",
+                        "http://192.168.48.51:1234/",
+                        "http://95.182.74.37:1234/"
+                    )
 
 
                     val edittext = EditText(requireContext())
                     edittext.text = SpannableStringBuilder(getIpFromShared());
                     alert.setMessage(R.string.ip_сщташпгкфешщт)
                     alert.setTitle("Сервер")
-                    edittext.setOnLongClickListener(){
-                        when(count){
-                            0 ->{edittext.text = SpannableStringBuilder(options[0])
-                                count++}
-                            1 ->{edittext.text = SpannableStringBuilder(options[1])
-                                count++}
-                            2 ->{edittext.text = SpannableStringBuilder(options[2])
-                                count=0}
+                    edittext.setOnLongClickListener() {
+                        when (count) {
+                            0 -> {
+                                edittext.text = SpannableStringBuilder(options[0])
+                                count++
+                            }
+                            1 -> {
+                                edittext.text = SpannableStringBuilder(options[1])
+                                count++
+                            }
+                            2 -> {
+                                edittext.text = SpannableStringBuilder(options[2])
+                                count = 0
+                            }
                         }
                         true
                     }
@@ -357,7 +364,6 @@ class CrimeListFragment : Fragment(),
                     pickPhoto()
                     true
                 }
-
 
 
                 R.id.delete_crimes -> {
@@ -417,12 +423,8 @@ class CrimeListFragment : Fragment(),
                     true
                 }
 
-                R.id.check_balance ->{
-                    if(checkSelfPermission(requireContext(),Manifest.permission.CALL_PHONE)!= PermissionChecker.PERMISSION_GRANTED){
-                        requestPermissions(arrayOf(Manifest.permission.CALL_PHONE),1)
-                    }else{
-                            checkBalance()
-                    }
+                R.id.check_balance -> {
+                    checkBalance()
                     true
                 }
                 else -> {
@@ -488,31 +490,28 @@ class CrimeListFragment : Fragment(),
         viewModel = ViewModelProvider(this).get(Auth::class.java)
         viewModel.context = requireContext()
         viewModel.initViewModel()
-        downloadController = DownloadController(requireContext(),"${ApiClient.baseUrl}download/vigpark.apk")
+        downloadController =
+            DownloadController(requireContext(), "${ApiClient.baseUrl}download/vigpark.apk")
 
 
-        val authObserver = Observer<Int>{
+        val authObserver = Observer<Int> {
             alertKey(it, viewModel)
 
         }
-        val aliveObserver = Observer<Boolean>{
-            if(it){
+        val aliveObserver = Observer<Boolean> {
+            if (it) {
                 resendAllUnsendCrimes()
 
             }
         }
         val versionObserver = Observer<String> {
-            if(Auth.VERSION!=it){
+            if (Auth.VERSION != it) {
                 downloadController.enqueueDownload()
 
             }
 
 
         }
-
-
-
-
 
 
 //        viewModel.authSuccess.value?.let { alertKey(it, viewModel) }
@@ -576,19 +575,26 @@ class CrimeListFragment : Fragment(),
         super.onCreateOptionsMenu(menu, inflater)
         this.menu = menu
 
-        menu.add(group1Id, flashid, flashid, "Фонарик").setIcon(R.drawable.ic_flash_off).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        val subZoneMenu = menu.addSubMenu(group1Id, zoneId, zoneId, "Выбор зоны").setIcon(R.drawable.ic_zone)
+        menu.add(group1Id, flashid, flashid, "Фонарик").setIcon(R.drawable.ic_flash_off)
+            .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        val subZoneMenu =
+            menu.addSubMenu(group1Id, zoneId, zoneId, "Выбор зоны").setIcon(R.drawable.ic_zone)
         subZoneMenu.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
 
 
 
 
-        viewModel.listOfAlias.value?.forEachIndexed{ index, item ->
-            if(item!=""){
-                try{
-                    subZoneMenu.add(2, item.split(",")[1].toInt(), item.split(",")[1].toInt(), item.split(",")[0]).setCheckable(true)
-                }catch(e:Exception) {
-                    subZoneMenu.add(2,index, index, "Ошибка зоны").setCheckable(true)
+        viewModel.listOfAlias.value?.forEachIndexed { index, item ->
+            if (item != "") {
+                try {
+                    subZoneMenu.add(
+                        2,
+                        item.split(",")[1].toInt(),
+                        item.split(",")[1].toInt(),
+                        item.split(",")[0]
+                    ).setCheckable(true)
+                } catch (e: Exception) {
+                    subZoneMenu.add(2, index, index, "Ошибка зоны").setCheckable(true)
                 }
             }
 
@@ -597,10 +603,10 @@ class CrimeListFragment : Fragment(),
         subZoneMenu.setGroupCheckable(2, true, true)
         try {
             selectMenu(zone, menu)
-        }catch (e:Exception){
+        } catch (e: Exception) {
 
         }
-        if (viewModel.authSuccess.value == 3){
+        if (viewModel.authSuccess.value == 3) {
             ApiClient.checkZone()
         }
         val zoneObserver = Observer<Set<String>> {
@@ -610,13 +616,13 @@ class CrimeListFragment : Fragment(),
         try {
             selectMenu(zone, menu)
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
 
         }
 
     }
 
-    fun rebuildMenu(menu: Menu){
+    fun rebuildMenu(menu: Menu) {
 
 
         val subZoneMenu = menu.findItem(zoneId).subMenu
@@ -624,17 +630,23 @@ class CrimeListFragment : Fragment(),
         subZoneMenu.getItem().setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
 
 
-        viewModel.listOfAlias.value?.forEachIndexed{ index, item ->
-            if(item!=""){
-                try{
-                    subZoneMenu.add(2, item.split(",")[1].toInt(), item.split(",")[1].toInt(), item.split(",")[0]).setCheckable(true)
-                }catch(e:Exception) {
-                    subZoneMenu.add(2,index, index, "Ошибка зоны").setCheckable(true)
-                }}
+        viewModel.listOfAlias.value?.forEachIndexed { index, item ->
+            if (item != "") {
+                try {
+                    subZoneMenu.add(
+                        2,
+                        item.split(",")[1].toInt(),
+                        item.split(",")[1].toInt(),
+                        item.split(",")[0]
+                    ).setCheckable(true)
+                } catch (e: Exception) {
+                    subZoneMenu.add(2, index, index, "Ошибка зоны").setCheckable(true)
+                }
+            }
         }
         try {
             subZoneMenu.getItem(getZoneFromShared()).isChecked = true
-        }catch(e:Exception){
+        } catch (e: Exception) {
 
         }
 
@@ -660,11 +672,11 @@ class CrimeListFragment : Fragment(),
                 }
                 true
             }
-            zoneId ->{
+            zoneId -> {
                 true
             }
 
-            else ->{
+            else -> {
                 zoneChange(item.itemId, menu, item)
                 return super.onOptionsItemSelected(item)
             }
@@ -724,7 +736,8 @@ class CrimeListFragment : Fragment(),
             it.crimes = crimes
         } ?: run {
             adapter = CrimeAdapter(crimes)
-            adapter!!.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+            adapter!!.stateRestorationPolicy =
+                RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             adapter!!.setHasStableIds(true);
 
         }
@@ -732,13 +745,11 @@ class CrimeListFragment : Fragment(),
 
 
         crimeRecyclerView.adapter = adapter
-            try{
-                crimeRecyclerView.scrollToPosition(crimeListViewModel.position)
-            }catch(e:Exception){
-                crimeRecyclerView.scrollToPosition(0)
-            }
-
-
+        try {
+            crimeRecyclerView.scrollToPosition(crimeListViewModel.position)
+        } catch (e: Exception) {
+            crimeRecyclerView.scrollToPosition(0)
+        }
 
 
     }
@@ -755,7 +766,7 @@ class CrimeListFragment : Fragment(),
         private val foundIcon: ImageView = itemView.findViewById(R.id.not_found)
         private val infoDot: ImageView = itemView.findViewById(R.id.crime_info_dot)
         private val zone: TextView = itemView.findViewById(R.id.crime_zone)
-        private lateinit var bFactoryOptions:BitmapFactory.Options
+        private lateinit var bFactoryOptions: BitmapFactory.Options
 
 
         init {
@@ -772,7 +783,7 @@ class CrimeListFragment : Fragment(),
             titleTextView.text = this.crime.title
             try {
                 zone.text = menu.getItem(1).subMenu.findItem(crime.Zone).title
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 zone.text = "xxx"
             }
             dateTextView.text = SimpleDateFormat("dd.MM HH:mm").format(this.crime.date)
@@ -802,7 +813,6 @@ class CrimeListFragment : Fragment(),
                     }
                 }
             }
-
 
 
         }
@@ -901,35 +911,54 @@ class CrimeListFragment : Fragment(),
                 crimes?.let {
                     Log.i(TAG, "Got crimeLiveData ${crimes.size}")
                     updateUI(crimes)
-                }
-            }
-        )
-
-        crimeListViewModel.crimeUnsendAndNotRemembered.observe(viewLifecycleOwner,Observer {crimes ->
-            crimes?.let {
-                Log.i(TAG, "Got crimeUnsendAndNotRemembered ${crimes.size}")
-                if(ApiClient.okHttpClient.dispatcher.runningCallsCount()==0){
-//                    Toast.makeText(requireContext(), "${crimes.size}", Toast.LENGTH_LONG).show()
-                    CoroutineScope(Dispatchers.Default).launch {
-                        for (crime in crimes){
-                            val timeStart = crime.date.time
-                            val timeNow = Date().time
-                            val diff = timeNow-timeStart
-                            if(diff>30000){
-                                crime.title = "Прервана отправка"
-                                crime.send = false
-                                crime.found = false
-                                CrimeRepository.get().updateCrime(crime)
+                    if(crimes.size>200){
+                        val last100Crimes = crimes.takeLast(100)
+                        Log.e(TAG, "onStart: Deleting 100 zaps", )
+                            CoroutineScope(Dispatchers.Default).launch {
+                                for (crime in last100Crimes) {
+                                    try {
+                                        val file = File(crime.img_path)
+                                        if (file.exists()) {
+                                            file.delete()
+                                            crimeListViewModel.deleteCrime(crime)
+                                        }
+                                    }catch (e:Exception){
+                                        this.cancel()
+                                    }
                             }
-
-
-
-                        }
                     }
                 }
             }
-            })
+            }
+        )
 
+        crimeListViewModel.crimeUnsendAndNotRemembered.observe(
+            viewLifecycleOwner,
+            Observer { crimes ->
+                try{
+                crimes?.let {
+                    Log.i(TAG, "Got crimeUnsendAndNotRemembered ${crimes.size}")
+                    if (ApiClient.okHttpClient.dispatcher.runningCallsCount() == 0) {
+//                    Toast.makeText(requireContext(), "${crimes.size}", Toast.LENGTH_LONG).show()
+                        CoroutineScope(Dispatchers.Default).launch {
+                            for (crime in crimes) {
+                                val timeStart = crime.date.time
+                                val timeNow = Date().time
+                                val diff = timeNow - timeStart
+                                if (diff > 30000) {
+                                    crime.title = "Сервер недоступен"
+                                    crime.send = false
+                                    crime.found = false
+                                    CrimeRepository.get().updateCrime(crime)
+                                }
+                            }
+                        }
+                    }
+                }
+            }catch (e:Exception){
+                    Log.e(TAG, "onStart: Error in unsend and not remebered", )
+                }
+            })
 
 
     }
@@ -965,11 +994,10 @@ class CrimeListFragment : Fragment(),
         })
     }
 
-    fun resendAllUnsendCrimes(){
-        crimeListViewModel.crimeUnsendLiveData.observeOnce(viewLifecycleOwner, Observer {
-                crimes ->
+    fun resendAllUnsendCrimes() {
+        crimeListViewModel.crimeUnsendLiveData.observeOnce(viewLifecycleOwner, Observer { crimes ->
             CoroutineScope(Dispatchers.Default).launch {
-                for(crime in crimes){
+                for (crime in crimes) {
                     ResendCrime(crime)
 
                 }
@@ -1121,19 +1149,18 @@ class CrimeListFragment : Fragment(),
         override fun onReceive(context: Context, intent: Intent?) {
             val action = intent?.action
 
-            if (!action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)){
+            if (!action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
                 try {
                     val status = getConnectivityStatusString(context)
 
-                    if (status != "No" ){
+                    if (status != "No") {
                         ApiClient.checkZone()
                     }
 
-                }catch (e:Exception){
+                } catch (e: Exception) {
                     Log.e("ERROR", "in reciver")
                 }
-            }
-            else{
+            } else {
                 Toast.makeText(context, "Bluetooth", Toast.LENGTH_SHORT).show()
             }
 
@@ -1165,22 +1192,11 @@ class CrimeListFragment : Fragment(),
         return TYPE_NOT_CONNECTED
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        when(requestCode){
-            1->{checkBalance()}
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    }
-
-
-    fun checkBalance(){
+    fun checkBalance() {
         val encodedHash = Uri.encode("#")
         val ussd = "*100$encodedHash"
-        startActivity(Intent(Intent.ACTION_CALL, Uri.parse("tel:$ussd")))
+        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$ussd"))
+        startActivity(intent)
     }
 }
 

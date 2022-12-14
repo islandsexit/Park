@@ -152,6 +152,7 @@ class CameraxHelper(
         val file = File(dir, UUID.randomUUID().toString() + ".jpg")
         val metadata = ImageCapture.Metadata().apply {
             // Mirror image when using the front camera
+
             isReversedHorizontal = lensFacing == CameraSelector.LENS_FACING_FRONT
         }
 
