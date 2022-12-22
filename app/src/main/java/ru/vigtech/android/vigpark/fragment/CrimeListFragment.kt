@@ -45,6 +45,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.navigation.NavigationView
+import com.squareup.picasso.Picasso
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -245,7 +246,6 @@ class CrimeListFragment : Fragment(),
         photoButton = view.findViewById(R.id.camera_button) as ImageButton
 //        crimeRecyclerView.setHasFixedSize(true)
         crimeRecyclerView.setItemViewCacheSize(50)
-        crimeRecyclerView.setHasFixedSize(true)
         photoButton.setOnClickListener {
             try {
                 crimeListViewModel.position = 0
@@ -789,8 +789,11 @@ class CrimeListFragment : Fragment(),
             dateTextView.text = SimpleDateFormat("dd.MM HH:mm").format(this.crime.date)
 //            var path_to_image = "/storage/emulated/0/${crime.img_path}"
             if (File(crime.img_path).exists() && crime.img_path != "") {
-                mybitmap = BitmapFactory.decodeFile(crime.img_path, bFactoryOptions)
-                solvedImageView.setImageBitmap(Bitmap.createScaledBitmap(mybitmap, 120, 120, false))
+                Picasso.get()
+                    .load(File(crime.img_path))
+                    .fit()
+                    .into(solvedImageView)
+
                 solvedImageView.visibility = View.VISIBLE
             } else {
                 solvedImageView.visibility = View.INVISIBLE
