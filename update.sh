@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "Start Updating"
-URL="http://www.vim.org/scripts/download_script.php?src_id=11834" 
+URL="https://github.com/islandsexit/Park/raw/final/RAS_CAM.zip" 
 NAME_UPDATE_ZIP=update.zip
 NAME_PROJECT=RAS_CAM
 NAME_PROJECT_BP=RAS_CAM_BACKUP
